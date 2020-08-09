@@ -1,4 +1,4 @@
-extensions [palette] ;; this allows us to use fancy color palettes
+; extensions [palette] ;; this allows us to use fancy color palettes
 
 ;;;;;;;;; variables
 
@@ -47,6 +47,7 @@ turtles-own[
   health ;; health/damage level (max growth rate before fitness tradeoffs)
   barcode ;; unique identifier of the cell lineage
   generation ;; number of generations elapsed since founding population - in case it's interesting
+  x-y-dr ;; a list containing xcor, ycor, and degrade-rate, so they stay together for export
 ]
 
 
@@ -80,23 +81,23 @@ to dilute ;; simulate transfer to fresh medium
 end
 
 
-to color-turtles ;; fancy color-coding schemes
-  if color-code = "growth-rate" [
-    ask turtles[
-      set color palette:scale-gradient [[197 27 125][233 163 201][161 215 106][77 146 33]] growth-rate 0 1
-    ]
-  ]
-  if color-code = "degrade-rate" [
-    ask turtles[
-      set color palette:scale-gradient [[165 0 38][255 255 191][49 54 149]] degrade-rate 0 1
-    ]
-  ]
-  if color-code = "barcode" [
-    ask turtles[
-      set color palette:scale-gradient palette:scheme-colors "Divergent" "Spectral" 11 barcode 0 (n * 10)
-    ]
-  ]
-end
+;to color-turtles ;; fancy color-coding schemes
+;  if color-code = "growth-rate" [
+;    ask turtles[
+;      set color palette:scale-gradient [[197 27 125][233 163 201][161 215 106][77 146 33]] growth-rate 0 1
+;    ]
+;  ]
+;  if color-code = "degrade-rate" [
+;    ask turtles[
+;      set color palette:scale-gradient [[165 0 38][255 255 191][49 54 149]] degrade-rate 0 1
+;    ]
+;  ]
+;  if color-code = "barcode" [
+;    ask turtles[
+;      set color palette:scale-gradient palette:scheme-colors "Divergent" "Spectral" 11 barcode 0 (n * 10)
+;    ]
+;  ]
+;end
 
 
 to choose-phenotype
@@ -156,8 +157,10 @@ to add-cells
     set health 1 ;; everyone starts healthy
     set growth-rate health * (1 - degrade-energy - response-energy) ;; this is the fitness tradeoff between growth and degradation, and response (if responding to environment)
     set barcode random n * 10 ;; assign a random barcode to help identify the lineage
+    set x-y-dr list xcor ycor ;; set spatial phenotype data
+    set x-y-dr lput degrade-rate x-y-dr ;; set spatial phenotype data
   ]
-    color-turtles ;; color-code turtles by growth rate or phenotype
+;    color-turtles ;; color-code turtles by growth rate or phenotype
 end
 
 
@@ -227,7 +230,7 @@ to go
   ]
 
   ;;;; color-code turtles by phenotype or growth rate
-  color-turtles
+;  color-turtles
 
   ;;; reproduction and mutation
   ask turtles[
@@ -254,6 +257,8 @@ to go
           set health 1
           set generation [generation] of self + 1
           choose-phenotype
+          set x-y-dr list xcor ycor  ;; update spatial phenotype data
+          set x-y-dr lput degrade-rate x-y-dr ;; update spatial phenotype data
           ]
         ]
       ]
@@ -408,7 +413,7 @@ initial-switch-rate
 initial-switch-rate
 0
 1
-0.0
+0.5
 .1
 1
 NIL
@@ -423,7 +428,7 @@ initial-response-error
 initial-response-error
 0
 1
-1.0
+0.5
 .1
 1
 NIL
@@ -453,21 +458,11 @@ env-noise
 env-noise
 0
 1
-1.0
+0.5
 0.1
 1
 NIL
 HORIZONTAL
-
-CHOOSER
-13
-107
-178
-152
-color-code
-color-code
-"growth-rate" "degrade-rate" "barcode"
-1
 
 PLOT
 983
@@ -507,7 +502,7 @@ mutation-rate
 mutation-rate
 0
 0.1
-0.1
+0.05
 0.01
 1
 NIL
@@ -569,7 +564,7 @@ dilute-rate
 dilute-rate
 1
 100
-1.0
+10.0
 1
 1
 NIL
@@ -612,7 +607,7 @@ CHOOSER
 phenotype-dist
 phenotype-dist
 "binary" "normal" "uniform" "exponential" "one-value" "responsive"
-0
+5
 
 SLIDER
 15
@@ -1278,6 +1273,29 @@ NetLogo 6.1.0
       <value value="0.4"/>
       <value value="0.6"/>
       <value value="0.8"/>
+      <value value="1"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment_200804_tutorial" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <metric>count turtles</metric>
+    <metric>mean [toxin] of patches</metric>
+    <metric>[degrade-rate] of turtles</metric>
+    <metric>[switch-rate] of turtles</metric>
+    <metric>[response-error] of turtles</metric>
+    <metric>[barcode] of turtles</metric>
+    <metric>[generation] of turtles</metric>
+    <metric>[x-y-dr] of turtles</metric>
+    <enumeratedValueSet variable="toxin-conc">
+      <value value="0"/>
+      <value value="0.5"/>
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="env-noise">
+      <value value="0"/>
+      <value value="0.5"/>
       <value value="1"/>
     </enumeratedValueSet>
   </experiment>
